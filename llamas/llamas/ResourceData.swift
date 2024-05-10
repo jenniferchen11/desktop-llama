@@ -74,6 +74,16 @@ func getPartyLlamaImages() -> [NSImage]{
     return images
 }
 
+func getSleepingLlamaImages() -> [NSImage]{
+    var images: [NSImage] = []
+    for i in 0...45 {
+        if let image = NSImage(named: "sleeping_llama_\(i).gif") {
+            images.append(image)
+        }
+    }
+    return images
+}
+
 func getCinamorollImages() -> [NSImage]{
     var images: [NSImage] = []
     for i in 0...140 {

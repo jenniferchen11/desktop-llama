@@ -13,21 +13,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     var window2: NSWindow!
     var moveTimer: Timer?
-    let randomX = Int.random(in: 5..<6)
-    let randomY = Int.random(in: -1..<0)
-    var moveDirection: CGPoint!
-    var isFlippedHorizontally = false
+    var moveDirection = CGPoint(x: 1, y: 1)
 
-    var flipViewModel = CompanionViewModel()
+    var companionViewModel = CompanionViewModel()
+    var controlViewModel = ControlViewModel()
     let contentView: ContentView
     var cancellables = Set<AnyCancellable>()
 
     override init() {
-        contentView = ContentView(viewModel: flipViewModel)
+        contentView = ContentView(viewModel: companionViewModel)
         super.init()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        setupIsFrozenSubscriber()
+        setupFollowCursorSubscriber()
+        createAnimationWindow()
+    }
+    
+    private func createAnimationWindow(){
         window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 0, height: 0),
             styleMask: [.borderless, .closable, .miniaturizable, .resizable, .fullSizeContentView],
@@ -43,14 +47,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //make the window transparent
         window.backgroundColor = NSColor.clear
         window.hasShadow = false
-
-        setupIsFrozenSubscriber()
-        moveTimer = Timer.scheduledTimer(timeInterval: 0.05, target: self, selector: #selector(moveWindow), userInfo: nil, repeats: true)
+    }
+    
+    private func setupTimer(behaviour: String){
+        moveTimer?.invalidate()
+        moveTimer = nil
+        if behaviour == "followCursor"{
+            moveTimer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(moveByFollowCursor), userInfo: nil, repeats: true)
+        }
+        else if behaviour == "random"{
+            moveTimer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(moveByRandom), userInfo: nil, repeats: true)
+        }
+        else{
+            return
+        }
+    }
+    
+    private func setupFollowCursorSubscriber() {
+        controlViewModel.$followCursor
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] followCursor in
+                self?.handleFollowCursorChanged(followCursor)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func handleFollowCursorChanged(_ followCursor: Bool) {
+        if followCursor {
+            setupTimer(behaviour: "followCursor")
+        } else {
+            setupTimer(behaviour: "random")
+        }
     }
     
     //checks if window should be frozen into place
     private func setupIsFrozenSubscriber() {
-        flipViewModel.$isFrozen
+        companionViewModel.$isFrozen
             .receive(on: DispatchQueue.main) //ensures updates are on the main thread
             .sink { [weak self] isFrozen in
                 self?.handleIsFrozenChanged(isFrozen)
@@ -61,17 +93,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleIsFrozenChanged(_ isFrozen: Bool) {
         if isFrozen {
             // stop the window from moving when frozen
-            moveTimer?.invalidate()
-            moveTimer = nil
+            setupTimer(behaviour: "")
         } else {
             // restart moving logic when not frozen
             if moveTimer == nil{
-                moveTimer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(moveWindow), userInfo: nil, repeats: true)
+                if controlViewModel.followCursor {
+                    setupTimer(behaviour: "followCursor")
+                } else {
+                    setupTimer(behaviour: "random")
+                }
             }
         }
     }
 
-    @objc func moveWindow() {
+    @objc func moveByFollowCursor() {
         let currentOrigin = window.frame.origin
         guard window.screen != nil else { return }
         let windowSize = window.frame.size
@@ -92,10 +127,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let newOriginY = currentOrigin.y + normalizedMoveDirectionY * speedFactor
 
         //check if flipping needed, ignore flipping if distance from cursor <= 5
-        if normalizedMoveDirectionX <= 0 && vectorLength > 5 && flipViewModel.facingLeft == false {
-            flipViewModel.facingLeft = true
-        } else if normalizedMoveDirectionX > 0 && vectorLength > 5  && flipViewModel.facingLeft == true {
-            flipViewModel.facingLeft = false
+        if normalizedMoveDirectionX <= 0 && vectorLength > 5 && companionViewModel.facingLeft == false {
+            companionViewModel.facingLeft = true
+        } else if normalizedMoveDirectionX > 0 && vectorLength > 5  && companionViewModel.facingLeft == true {
+            companionViewModel.facingLeft = false
         }
         
         //update window position
@@ -103,11 +138,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.setFrameOrigin(NSPoint(x: newOriginX, y: newOriginY))
         }
     }
+    
+    @objc func moveByRandom() {
+        let currentOrigin = window.frame.origin
+        guard let screen = window.screen else { return } // ensure there is a screen
+        let windowSize = window.frame.size
+
+        // Calculate new origin
+        var newOriginX = currentOrigin.x + moveDirection.x * 1 // adjust speed by multiplying
+        var newOriginY = currentOrigin.y + moveDirection.y * 1
+
+        // Check boundaries and adjust direction if necessary
+        let maxOriginX = screen.visibleFrame.maxX - windowSize.width
+        let maxOriginY = screen.visibleFrame.maxY - windowSize.height
+
+        // Reverse direction if hitting edges
+        if newOriginX <= screen.visibleFrame.minX || newOriginX >= maxOriginX {
+            moveDirection.x = -moveDirection.x
+            newOriginX = currentOrigin.x + moveDirection.x * 5
+        }
+        if newOriginY <= screen.visibleFrame.minY || newOriginY >= maxOriginY {
+            moveDirection.y = -moveDirection.y
+            newOriginY = currentOrigin.y + moveDirection.y * 5
+        }
+        
+        //check if flipping needed, ignore flipping if distance from cursor <= 5
+        if moveDirection.x < 0 && companionViewModel.facingLeft == false {
+            companionViewModel.facingLeft = true
+        } else if moveDirection.x > 0  && companionViewModel.facingLeft == true {
+            companionViewModel.facingLeft = false
+        }
+
+        // Update window position
+        window.setFrameOrigin(NSPoint(x: newOriginX, y: newOriginY))
+    }
+
 }
 
 class CompanionViewModel: ObservableObject {
     @Published var isFrozen: Bool = false
     @Published var images: [NSImage] = companion.getImages()
     @Published var reversedImages: [NSImage] = flipImages(images: companion.getImages())
+    @Published var inPlaceImages: [NSImage] = getSleepingLlamaImages() 
     @Published var facingLeft: Bool = false
 }

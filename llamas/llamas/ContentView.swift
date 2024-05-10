@@ -14,7 +14,7 @@ struct ContentView: View {
     @ObservedObject var viewModel: CompanionViewModel
     var body: some View {
         VStack {
-            AnimatedImageView(isFrozen: $viewModel.isFrozen, facingLeft: $viewModel.facingLeft, images: $viewModel.images, reversedImages: $viewModel.reversedImages)
+            AnimatedImageView(isFrozen: $viewModel.isFrozen, facingLeft: $viewModel.facingLeft, images: $viewModel.images, reversedImages: $viewModel.reversedImages, inPlaceImages: $viewModel.inPlaceImages)
                 .frame(width: IMAGE_WIDTH, height: (IMAGE_WIDTH/viewModel.images[0].size.width)*viewModel.images[0].size.height)
         }
         .padding()
@@ -65,13 +65,13 @@ struct AnimatedImageView: NSViewRepresentable {
     @Binding var facingLeft: Bool
     @Binding var images: [NSImage]
     @Binding var reversedImages: [NSImage]
+    @Binding var inPlaceImages: [NSImage]
 
     func makeNSView(context: Context) -> NSImageView {
         let nsImageView = InteractiveImageView(onTap: {
             self.isFrozen.toggle()
         })
         nsImageView.imageScaling = .scaleProportionallyUpOrDown
-
         nsImageView.wantsLayer = true
         nsImageView.animates = true
         animateImages(imageView: nsImageView)
@@ -90,7 +90,11 @@ struct AnimatedImageView: NSViewRepresentable {
 
     func animateImages(imageView: NSImageView) {
         let animation = CAKeyframeAnimation(keyPath: "contents")
-        let dirImages = facingLeft ? images : reversedImages
+        var dirImages = facingLeft ? images : reversedImages
+        if isFrozen{
+            dirImages = inPlaceImages
+        }
+        
         let cgImages = dirImages.map { $0.cgImage(forProposedRect: nil, context: nil, hints: nil)! }
         animation.values = cgImages
         animation.duration = Double(dirImages.count) * 0.02

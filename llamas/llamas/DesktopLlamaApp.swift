@@ -8,7 +8,7 @@ struct DesktopLlamaApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate //connects the AppDelegate to SwiftUI
     var body: some Scene {
         WindowGroup {
-            EmptyView()
+            ControlView(viewModel: appDelegate.controlViewModel)
         }
     }
 }
