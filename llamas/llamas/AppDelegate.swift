@@ -9,7 +9,16 @@ import Foundation
 import SwiftUI
 import Combine
 
+let COMPANION: DesktopCompanion = DesktopCompanion.LLAMA
+
 class AppDelegate: NSObject, NSApplicationDelegate {
+    
+    // modify based on desired speed
+    let speedFactor: CGFloat = 3.0
+    // modify based on desired desktop companion
+    let companion: DesktopCompanion = COMPANION
+    
+    
     var window: NSWindow!
     var window2: NSWindow!
     var moveTimer: Timer?
@@ -49,17 +58,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.hasShadow = false
     }
     
-    private func setupTimer(behaviour: String){
+    private func setupTimer(){
         moveTimer?.invalidate()
         moveTimer = nil
-        if behaviour == "followCursor"{
-            moveTimer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(moveByFollowCursor), userInfo: nil, repeats: true)
-        }
-        else if behaviour == "random"{
-            moveTimer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(moveByRandom), userInfo: nil, repeats: true)
-        }
-        else{
-            return
+        if companionViewModel.isFrozen == false{
+            if controlViewModel.followCursor{
+                moveTimer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(moveByFollowCursor), userInfo: nil, repeats: true)
+            }
+            else{
+                moveTimer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(moveByRandom), userInfo: nil, repeats: true)
+            }
         }
     }
     
@@ -73,11 +81,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func handleFollowCursorChanged(_ followCursor: Bool) {
-        if followCursor {
-            setupTimer(behaviour: "followCursor")
-        } else {
-            setupTimer(behaviour: "random")
-        }
+        setupTimer()
     }
     
     //checks if window should be frozen into place
@@ -91,19 +95,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleIsFrozenChanged(_ isFrozen: Bool) {
-        if isFrozen {
-            // stop the window from moving when frozen
-            setupTimer(behaviour: "")
-        } else {
-            // restart moving logic when not frozen
-            if moveTimer == nil{
-                if controlViewModel.followCursor {
-                    setupTimer(behaviour: "followCursor")
-                } else {
-                    setupTimer(behaviour: "random")
-                }
-            }
-        }
+        setupTimer()
     }
 
     @objc func moveByFollowCursor() {
@@ -122,7 +114,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let normalizedMoveDirectionY = newMoveDirectionY / vectorLength
 
         //set speed
-        let speedFactor: CGFloat = 3.0 // Adjust speed factor to suitable value
         let newOriginX = currentOrigin.x + normalizedMoveDirectionX * speedFactor
         let newOriginY = currentOrigin.y + normalizedMoveDirectionY * speedFactor
 
@@ -143,16 +134,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let currentOrigin = window.frame.origin
         guard let screen = window.screen else { return } // ensure there is a screen
         let windowSize = window.frame.size
+        
+        var newOriginX = currentOrigin.x + moveDirection.x * speedFactor
+        var newOriginY = currentOrigin.y + moveDirection.y * speedFactor
 
-        // Calculate new origin
-        var newOriginX = currentOrigin.x + moveDirection.x * 1 // adjust speed by multiplying
-        var newOriginY = currentOrigin.y + moveDirection.y * 1
-
-        // Check boundaries and adjust direction if necessary
         let maxOriginX = screen.visibleFrame.maxX - windowSize.width
         let maxOriginY = screen.visibleFrame.maxY - windowSize.height
 
-        // Reverse direction if hitting edges
+        // reverse direction if hitting edges
         if newOriginX <= screen.visibleFrame.minX || newOriginX >= maxOriginX {
             moveDirection.x = -moveDirection.x
             newOriginX = currentOrigin.x + moveDirection.x * 5
@@ -169,16 +158,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             companionViewModel.facingLeft = false
         }
 
-        // Update window position
+        // update window position
         window.setFrameOrigin(NSPoint(x: newOriginX, y: newOriginY))
     }
 
-}
-
-class CompanionViewModel: ObservableObject {
-    @Published var isFrozen: Bool = false
-    @Published var images: [NSImage] = companion.getImages()
-    @Published var reversedImages: [NSImage] = flipImages(images: companion.getImages())
-    @Published var inPlaceImages: [NSImage] = getSleepingLlamaImages() 
-    @Published var facingLeft: Bool = false
 }

@@ -9,24 +9,6 @@ import Foundation
 import SwiftUI
 import AppKit
 
-struct ResourceData {
-    var images: [NSImage]
-    var reversedImages: [NSImage]
-}
-
-enum Companion {
-    case CINAMOROLL
-    case LLAMA
-    
-    func getImages() -> [NSImage] {
-        switch self {
-        case .CINAMOROLL:
-            return getCinamorollImages()
-        case .LLAMA:
-            return getPartyLlamaImages()
-        }
-    }
-}
 
 func flipImages(images: [NSImage]) -> [NSImage] {
     var flippedImages = [NSImage]()
@@ -63,6 +45,7 @@ func flipImages(images: [NSImage]) -> [NSImage] {
     return flippedImages
 }
 
+// LLAMA IMAGE RETRIVAL FUNCTIONS
 
 func getPartyLlamaImages() -> [NSImage]{
     var images: [NSImage] = []
@@ -83,6 +66,8 @@ func getSleepingLlamaImages() -> [NSImage]{
     }
     return images
 }
+
+// CINAMOROLL IMAGE RETRIVAL FUNCTIONS
 
 func getCinamorollImages() -> [NSImage]{
     var images: [NSImage] = []

@@ -1,11 +1,9 @@
 import SwiftUI
 import Combine
 
-let companion: Companion = Companion.LLAMA
-
 @main
 struct DesktopLlamaApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate //connects the AppDelegate to SwiftUI
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
         WindowGroup {
             ControlView(viewModel: appDelegate.controlViewModel)

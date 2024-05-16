@@ -374,6 +374,7 @@
 		4C9C19712BEC1464008E66F1 /* sleeping_llama_19.gif in Resources */ = {isa = PBXBuildFile; fileRef = 4C9C18C22BEC1464008E66F1 /* sleeping_llama_19.gif */; };
 		4C9C19722BEC1464008E66F1 /* sleeping_llama_72.gif in Resources */ = {isa = PBXBuildFile; fileRef = 4C9C18C32BEC1464008E66F1 /* sleeping_llama_72.gif */; };
 		4C9C19732BEC1464008E66F1 /* sleeping_llama_112.gif in Resources */ = {isa = PBXBuildFile; fileRef = 4C9C18C42BEC1464008E66F1 /* sleeping_llama_112.gif */; };
+		4C9C19752BF5E175008E66F1 /* DesktopCompanion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C9C19742BF5E175008E66F1 /* DesktopCompanion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -746,6 +747,7 @@
 		4C9C18C22BEC1464008E66F1 /* sleeping_llama_19.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = sleeping_llama_19.gif; sourceTree = "<group>"; };
 		4C9C18C32BEC1464008E66F1 /* sleeping_llama_72.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = sleeping_llama_72.gif; sourceTree = "<group>"; };
 		4C9C18C42BEC1464008E66F1 /* sleeping_llama_112.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = sleeping_llama_112.gif; sourceTree = "<group>"; };
+		4C9C19742BF5E175008E66F1 /* DesktopCompanion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopCompanion.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -991,6 +993,7 @@
 				4C9C175B2BEAD01C008E66F1 /* AppDelegate.swift */,
 				4C8FFBC92BE017D000790EF0 /* ContentView.swift */,
 				4C9C17632BEBF050008E66F1 /* ControlView.swift */,
+				4C9C19742BF5E175008E66F1 /* DesktopCompanion.swift */,
 				4C8FFBC72BE017D000790EF0 /* DesktopLlamaApp.swift */,
 				4C2E18882BE815F100F8DCB5 /* ResourceData.swift */,
 				4C8FFBCB2BE017D000790EF0 /* Assets.xcassets */,
@@ -1625,6 +1628,7 @@
 				4C2E18892BE815F100F8DCB5 /* ResourceData.swift in Sources */,
 				4C8FFBC82BE017D000790EF0 /* DesktopLlamaApp.swift in Sources */,
 				4C9C17642BEBF050008E66F1 /* ControlView.swift in Sources */,
+				4C9C19752BF5E175008E66F1 /* DesktopCompanion.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
